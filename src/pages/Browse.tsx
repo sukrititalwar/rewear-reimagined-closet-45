@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -16,10 +15,10 @@ const Browse = () => {
   const [filteredItems, setFilteredItems] = useState<Item[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
-    category: '',
-    size: '',
-    type: '',
-    condition: ''
+    category: 'All',
+    size: 'All',
+    type: 'All',
+    condition: 'All'
   });
 
   const categories = ['All', 'Tops', 'Bottoms', 'Dresses', 'Jackets', 'Shoes', 'Accessories', 'Sets'];
@@ -34,22 +33,12 @@ const Browse = () => {
   }, []);
 
   useEffect(() => {
-    let filtered = items;
-
-    // Apply search
-    if (searchQuery) {
-      filtered = itemsAPI.search(searchQuery, {
-        category: filters.category !== 'All' ? filters.category : undefined,
-        size: filters.size !== 'All' ? filters.size : undefined,
-        type: filters.type !== 'All' ? filters.type as any : undefined
-      });
-    }
-
-    // Apply additional filters
-    if (filters.condition && filters.condition !== 'All') {
-      filtered = filtered.filter(item => item.condition === filters.condition);
-    }
-
+    let filtered = itemsAPI.search(searchQuery, {
+      category: filters.category !== 'All' ? filters.category : undefined,
+      size: filters.size !== 'All' ? filters.size : undefined,
+      type: filters.type !== 'All' ? filters.type as any : undefined,
+      condition: filters.condition !== 'All' ? filters.condition : undefined,
+    });
     setFilteredItems(filtered);
   }, [searchQuery, filters, items]);
 
@@ -74,14 +63,12 @@ const Browse = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 dark:from-purple-950 dark:via-pink-950 dark:to-yellow-950">
       <Navbar />
-      
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-3xl font-bold">Browse Items</h1>
             <MascotIcon size={60} category={filters.category || 'general'} />
           </div>
-          
           {/* Search and Filters */}
           <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
             <div className="md:col-span-2">
@@ -95,7 +82,6 @@ const Browse = () => {
                 />
               </div>
             </div>
-            
             <Select value={filters.category} onValueChange={(value) => setFilters(prev => ({ ...prev, category: value }))}>
               <SelectTrigger>
                 <SelectValue placeholder="Category" />
@@ -106,7 +92,6 @@ const Browse = () => {
                 ))}
               </SelectContent>
             </Select>
-
             <Select value={filters.size} onValueChange={(value) => setFilters(prev => ({ ...prev, size: value }))}>
               <SelectTrigger>
                 <SelectValue placeholder="Size" />
@@ -117,7 +102,6 @@ const Browse = () => {
                 ))}
               </SelectContent>
             </Select>
-
             <Select value={filters.type} onValueChange={(value) => setFilters(prev => ({ ...prev, type: value }))}>
               <SelectTrigger>
                 <SelectValue placeholder="Type" />
@@ -130,7 +114,6 @@ const Browse = () => {
                 ))}
               </SelectContent>
             </Select>
-
             <Select value={filters.condition} onValueChange={(value) => setFilters(prev => ({ ...prev, condition: value }))}>
               <SelectTrigger>
                 <SelectValue placeholder="Condition" />
@@ -143,14 +126,12 @@ const Browse = () => {
             </Select>
           </div>
         </div>
-
         {/* Results */}
         <div className="mb-4">
           <p className="text-gray-600 dark:text-gray-400">
             Showing {filteredItems.length} items
           </p>
         </div>
-
         {/* Items Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredItems.map((item) => (
@@ -163,30 +144,29 @@ const Browse = () => {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 </div>
-                
                 <CardContent className="p-4">
+                  {/* Show badge if minimum images not met */}
+                  {item.images.length < 4 && (
+                    <Badge variant="destructive" className="mb-2">Minimum images missing!</Badge>
+                  )}
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="font-semibold text-sm truncate flex-1 mr-2">{item.title}</h3>
                     <Badge className={`text-xs ${getTypeColor(item.type)}`}>
                       {getTypeIcon(item.type)} {item.type}
                     </Badge>
                   </div>
-                  
                   <p className="text-gray-600 dark:text-gray-400 text-xs mb-2 line-clamp-2">
                     {item.description}
                   </p>
-                  
                   <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
                     <span>{item.brand}</span>
                     <span>{item.size}</span>
                   </div>
-                  
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1">
                       <User className="w-3 h-3" />
                       <span className="text-xs">{item.username}</span>
                     </div>
-                    
                     {item.location && (
                       <div className="flex items-center gap-1 text-xs text-gray-500">
                         <MapPin className="w-3 h-3" />
@@ -194,19 +174,16 @@ const Browse = () => {
                       </div>
                     )}
                   </div>
-                  
                   {item.type === 'rent' && item.rentPrice && (
                     <div className="mt-2 text-sm font-medium text-green-600">
                       ₹{item.rentPrice}/day
                     </div>
                   )}
-                  
                   {item.type === 'redeem' && item.points && (
                     <div className="mt-2 text-sm font-medium text-purple-600">
                       {item.points} points
                     </div>
                   )}
-                  
                   <div className="flex flex-wrap gap-1 mt-2">
                     {item.tags?.slice(0, 2).map((tag) => (
                       <Badge key={tag} variant="outline" className="text-xs">
@@ -219,7 +196,6 @@ const Browse = () => {
             </Link>
           ))}
         </div>
-
         {filteredItems.length === 0 && (
           <div className="text-center py-12">
             <MascotIcon size={120} category={filters.category || 'general'} className="mx-auto mb-4" />
